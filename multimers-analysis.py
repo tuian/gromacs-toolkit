@@ -51,7 +51,7 @@ def main():
     
     peptide_selection, peptide_dictionary = define_peptides(peptide_conf["number"], peptide_conf["lenght"])
     
-    partners, clusters, multimers =  analyze(skip = 10)
+    partners, clusters, multimers =  analyze(skip = 20)
     
     plot(multimers)
 
@@ -101,13 +101,13 @@ def analyze(partners = {} , clusters = {}, multimers = [{}, {}, {}, {}], skip = 
         # plotting library used
         t0, t1, t2, t3 = find_multimers(c)
                
-        multimers[0]["x"].append(ts.time/1000)
+        multimers[0]["x"].append(ts.time/1000000)
         multimers[0]["y"].append(t0)
-        multimers[1]["x"].append(ts.time/1000)
+        multimers[1]["x"].append(ts.time/1000000)
         multimers[1]["y"].append(t1)
-        multimers[2]["x"].append(ts.time/1000)
+        multimers[2]["x"].append(ts.time/1000000)
         multimers[2]["y"].append(t2)
-        multimers[3]["x"].append(ts.time/1000)
+        multimers[3]["x"].append(ts.time/1000000)
         multimers[3]["y"].append(t3)
         
     return partners, clusters, multimers
@@ -201,34 +201,37 @@ def find_multimers(clusters_list):
 def plot(multimers):
     """
     Default plotting function. Change according to your needs.
-    """       
-    title("WAAP23")
+    """
       
     subplot(411)   
     step(multimers[0]["x"], multimers[0]["y"], color="black", linewidth=2)
     ylim(0,14)
-    xlim(0, 8000)
-    text(6000,10, 'monomeres', fontsize=14)
+    xlim(0, 8)
+    text(6,10, 'monomeres', fontsize=14)
     
     subplot(412)   
     step(multimers[1]["x"], multimers[1]["y"], color="black", linewidth=2)
-    ylim(0,14)
-    xlim(0, 8000)
-    text(6000,10, 'dimers', fontsize=14)
+    ylim(0,6)
+    yticks(arange(7))
+    xlim(0, 8)
+    text(6,4, 'dimers', fontsize=14)
     
     subplot(413)   
     step(multimers[2]["x"], multimers[2]["y"], color="black", linewidth=2)
-    ylim(0,14)
-    xlim(0, 8000)
-    text(6000,10, 'trimers', fontsize=14)
+    ylim(0,4)
+    yticks(arange(5))
+    xlim(0, 8)
+    text(6,2, 'trimers', fontsize=14)
     
     subplot(414)   
     step(multimers[3]["x"], multimers[3]["y"], color="black", linewidth=2)
-    ylim(0,14)
-    xlim(0, 8000)
-    text(6000,10, 'multimers', fontsize=14)
+    ylim(0,4)
+    yticks(arange(5))
+    xlim(0, 8)
+    text(6,2, 'multimers', fontsize=14)
     
-    xlabel("Time (ns)")
+    xlabel("Time (us)")
+    #title("WAAP23")
     show()
 
 if __name__ == "__main__":

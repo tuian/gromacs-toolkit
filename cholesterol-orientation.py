@@ -4,7 +4,7 @@ import numpy
 import math
 
 conf = "conf.gro"
-traj = "traj.part0006.xtc"
+traj = "traj_cat.xtc"
 
 u = Universe(conf,traj) 
 
@@ -13,10 +13,12 @@ z = numpy.array([0, 0 , 1]) # z-axis vector
 def calculate_orientation(molecule_exclude):
     ret = []
     for ts in u.trajectory:
-        if (ts.frame % 100) != 0: continue # skip  
+        if (ts.frame < 20) : continue # skip  
+        if (ts.frame > 50): break
         
         # select whole cholesterol molecules
-        chol_list = u.selectAtoms("byres ((resname CHOL) and not (around 7 resname %s))" % (molecule_exclude) )
+        chol_list = u.selectAtoms("resname CHOL")
+        #chol_list = u.selectAtoms("byres ((resname CHOL) and not (around 7 resname %s))" % (molecule_exclude) )
         
         chol_list = sort(chol_list) # sorts the cholesterols by resid, such that they are grouped into molecules
         
@@ -30,7 +32,7 @@ def calculate_orientation(molecule_exclude):
             #print a
             ret.append(a)    
     print "The mean angle is %f, std %f" % (scipy.mean(ret), scipy.std(ret))
-    return ret
+    return np.array(ret)
 
 
 def angle(v1, v2): 
@@ -49,3 +51,10 @@ def sort(atom_group):
         ret[-1].append(atom)
     
     return ret
+
+def plot(a, b, c):
+    figure();
+    hist([a, b, c], 10, normed=True, label=["Starting", "Cholesterol in Lo", "Cholesterol in Ld"])
+    legend()
+    show()
+    
