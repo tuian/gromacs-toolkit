@@ -1,37 +1,77 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# python lipid2lipid.py <FILE> <OLD LIPID TYPE> <NEW LIPID TYPE>
-# python lipid2lipid.py bilayer.gro POPC DAPC
-# AUTHOR: Clement Arnarez
-# Improved by: Jan Domanski
-# Version 1.1
+"""
+:Author: Jan Domanski
+:Year: 2010
+:Copyright: GNU Public License v3
+
+Gromacs-Toolkti: conf2conf
+===========================================
+The script allows the user to modify .gro files - configuration/structure file for gromacs.
+
+Examples:
+
+(1) dump file contents in topology format,
+
+    'python conf2conf -f conf.gro -a dump'
+    
+    *Std out: 'Protein 12 DPPC 100 DUPC 190 DPPC 100', following the order in the file.
+
+(2) remove molecule at a given frequency, e.g. every 1 in 3 cholesterols
+
+    'python conf2conf -f conf.gro -a remove CHOL 1 3 -o '
+
+(3) rename molecule,
+
+    'python conf2conf -f conf.gro -a rename DPPC DUPC -o '
+    
+    Will rename all DPPCs to DUPCs.
+
+(4) rename bead-type
+
+"""
 import sys
 from optparse import OptionParser
 
-def process(line):
+
+class Bead:
+    def __init__(self, line):
+        self.data = {}
+
+        list = [int(line[:5]), line[5:10].strip()  , line[10:15].strip(), int(line[15:20]), float(line[21:28]), float(line[29:37]), float(line[37:45])]
+
+        dict = {}
+        
+        self.residue = list[0]
+        self.resname = list[1]
+        self.type = list[2]
+        self.atom = list[3]
+        self.x = list[4]
+        self.y = list[5]
+        self.z = list[6]
+
+        self.data = dict
+
+class Residue:
+    def __init__(self, resid):
+        self.data = []
+        self.residue = resid
+
+    def add(self, bead):
+        self.data.append(bead)
+
+def process_line(line):
     """
     Process the line according the fixed .gro formatting
-    
+
     Details of the gro file formatting can be found at:
     http://manual.gromacs.org/current/online/gro.html
     """
-    list = [int(line[:5]), line[5:10].strip()  , line[10:15].strip(), int(line[15:20]), float(line[21:28]), float(line[29:37]), float(line[37:45])]
 
-    dict = {}
-    #dict = { "molecule_id":0, "molecule_name":"", "bead_name":"", "bead_type":0} 
-    
-    dict["id"] = list[0]
-    dict["name"] = list[1]
-    dict["type"] = list[2]
-    dict["bead"] = list[3]
-    dict["x"] = list[4]
-    dict["y"] = list[5]
-    dict["z"] = list[6]
-    
-    return dict # a 'bead'
+    bead = Bead(line)
 
+    return bead
 
-def interpret(lines):
+def process_line_list(lines):
     """
     Input: the lines list read from a .gro file, without the headers
     Output: list of beads grouped by molecule
@@ -40,19 +80,18 @@ def interpret(lines):
     molecules = {} # list containing all the molecules
     
     for line in lines :
-        bead = process(line)
+        bead = process_line(line)
       
-        index = bead["id"]
+        index = bead.residue
     
         if not molecules.has_key(index) :
-            molecules[index] = [bead["name"],[]]
+            molecules[index] = [bead.resname,[]]
             
         molecules[index][1].append(bead)
     
     return molecules
  
 def save(header, molecules, box):
-
   
     print header,
     print "%i" % (len(molecules.items()))
@@ -115,7 +154,7 @@ def retype(molecules, argv):
     
     return molecules
 
-def composition(molecules):
+def dump(molecules):
     """
     This function dumps the conf file in a format that is suitable for a topology file, counting up all the molecules.
     """
@@ -144,14 +183,7 @@ def main(argv):
     help="Output - Conf. file - .gro", metavar="FILE", default="out.gro")
     # Operation
     parser.add_option("-a", "--action", dest="function",
-    help="Operation to perform: name, type, remove, composition. Include the operation-arguments afterwards.\n"+
-    "Examples:\n\n"+
-    "composition    no arguments, dumps the gro contents in a format suitable for a top file\n\n"+
-    "name DPPC DUPC     rename DPPC molecules into DUPC molecules\n\n"+
-    "type DPPC C4* -    rename a bead within a molecule of a given type, if \"-\" is given, the bead is removed.\n\n"+
-    "remove CHOL 1 3    remove molecule of a certain type, with a given frequency. Here, remove 1 in 3 cholesterols"
-    , metavar="STRING")
-
+    help="See docstring for instructions." , metavar="STRING")
     (options, args) = parser.parse_args()
 
     # Pre-execution
@@ -159,10 +191,9 @@ def main(argv):
     operation = options.function;
     file=open(input)
     lines = file.readlines()
-    molecules = interpret(lines[2:-1])
+    molecules = process_line_list(lines[2:-1])
     
     # Do-exectution
-    
     if operation == "remove":
         molecules = remove(molecules, args)
 
@@ -170,12 +201,10 @@ def main(argv):
 	molecules = retype(molecules, args)
         
     if operation == "dump":
-        composition(molecules)
+        dump(molecules)
         sys.exit(0)
 
-    # Post-execution
-    
-    
+    # Post-execution   
     (header, box) = post_process(lines)
     save(header, molecules, box)
     
