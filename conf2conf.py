@@ -101,7 +101,7 @@ def save(header, molecules, box):
         for bead in beads:
             count += 1
             try:
-                print '%5i%-5s%5s%5i%8.3f%8.3f%8.3f' % (bead["id"], bead["name"], bead["type"], count, bead["x"], bead["y"], bead["z"]) 
+                print '%5i%-5s%5s%5i%8.3f%8.3f%8.3f' % (bead.residue, bead.resname, bead.type, count, bead.x, bead.y, bead.z) 
             except IOError:
                 "Exception: IOError"
     print box,
@@ -147,7 +147,7 @@ def retype(molecules, argv):
 	bead_index = -1;
         for bead in list:
 	    bead_index += 1
-	    if bead["type"] != bead_find:
+	    if bead.type != bead_find:
                 continue
             if bead_replace == "-":
                 del list[bead_index]
