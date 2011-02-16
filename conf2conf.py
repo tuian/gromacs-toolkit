@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """
 :Author: Jan Domanski
 :Year: 2010
@@ -29,6 +30,7 @@ Examples:
 (4) rename bead-type
 
 """
+
 import sys
 from optparse import OptionParser
 
@@ -130,6 +132,31 @@ def remove(molecules, argv):
             counter = 0
     
     return molecules
+
+def swap(molecules, argv):
+    """
+    conf2conf -a swap type new_type numerator denominator
+    """
+    
+    type = argv[0]
+    new_type = argv[1]
+    numerator = int(argv[2])
+    denominator = int(argv[3])
+    counter = 0
+    for k, [v, list] in molecules.items():
+        if not v == type:
+            continue
+        
+        counter += 1
+        if counter <= numerator:
+            atom_group = molecules[k][1]
+            for atom in atom_group:
+              atom["name"] = new_type
+        if counter >= denominator:
+
+            counter = 0
+    
+    return molecules
             
 def retype(molecules, argv):
     """
@@ -197,8 +224,11 @@ def main(argv):
     if operation == "remove":
         molecules = remove(molecules, args)
 
+    if operation == "swap":
+        molecules = swap(molecules, args)
+
     if operation == "type":
-	molecules = retype(molecules, args)
+	    molecules = retype(molecules, args)
         
     if operation == "dump":
         dump(molecules)
